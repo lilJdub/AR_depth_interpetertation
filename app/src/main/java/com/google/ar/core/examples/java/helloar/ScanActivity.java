@@ -14,16 +14,11 @@ package com.google.ar.core.examples.java.helloar;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import android.content.Context;
+
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraManager;
 import android.media.Image;
-import android.opengl.GLES11Ext;
 import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
@@ -35,19 +30,24 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
+
+import android.widget.CompoundButton;
+
+
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
 import com.google.ar.core.Config;
 import com.google.ar.core.Config.InstantPlacementMode;
-import com.google.ar.core.Coordinates2d;
 import com.google.ar.core.Frame;
 import com.google.ar.core.HitResult;
-import com.google.ar.core.ImageMetadata;
 import com.google.ar.core.InstantPlacementPoint;
 import com.google.ar.core.LightEstimate;
 import com.google.ar.core.Plane;
@@ -79,25 +79,21 @@ import com.google.ar.core.examples.java.common.samplerender.arcore.BackgroundRen
 import com.google.ar.core.examples.java.common.samplerender.arcore.PlaneRenderer;
 import com.google.ar.core.examples.java.common.samplerender.arcore.SpecularCubemapFilter;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
-import com.google.ar.core.exceptions.MetadataNotFoundException;
 import com.google.ar.core.exceptions.NotYetAvailableException;
 import com.google.ar.core.exceptions.UnavailableApkTooOldException;
 import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
 import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-
-import static com.google.ar.core.Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES;
-import static com.google.ar.core.Coordinates2d.TEXTURE_NORMALIZED;
 
 /**
  * This is a simple example that shows how to create an augmented reality (AR) application using the
@@ -106,7 +102,7 @@ import static com.google.ar.core.Coordinates2d.TEXTURE_NORMALIZED;
  */
 public class ScanActivity extends AppCompatActivity implements SampleRender.Renderer {
 
-    private static final String TAG = HelloArActivity.class.getSimpleName();
+    private static final String TAG = ScanActivity.class.getSimpleName();
 
     private static final String SEARCHING_PLANE_MESSAGE = "Searching for surfaces...";
     private static final String WAITING_FOR_TAP_MESSAGE = "Tap on a surface to place an object.";
@@ -174,16 +170,15 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
     // Keep track of the last point cloud rendered to avoid updating the VBO if point cloud
     // was not changed.  Do this using the timestamp since we can't compare PointCloud objects.
     private long lastPointCloudTimestamp = 0;
-    private long lastCameraImageTimestamp=0;
+    private long lastCameraImageTimestamp = 0;
 
     // Virtual object (ARCore pawn)
     private Mesh virtualObjectMesh;
     private Shader virtualObjectShader;
 
 
-
     private final ArrayList<Anchor> anchors = new ArrayList<>();
-    public ArrayList<com.google.ar.core.examples.java.common.helpers.Point>pc;
+    public ArrayList<com.google.ar.core.examples.java.common.helpers.Point> pc;
     // Environmental HDR
     private Texture dfgTexture;
     private SpecularCubemapFilter cubemapFilter;
@@ -198,10 +193,15 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
     private final float[] viewInverseMatrix = new float[16];
     private final float[] worldLightDirection = {0.0f, 0.0f, 0.0f, 0.0f};
     private final float[] viewLightDirection = new float[4]; // view x world light direction
-    private boolean firstDraw=true;
+    private boolean firstDraw = true;
     private int viewWidth;
     private int viewHeight;
-    private float deg=0;
+    private float deg = 0;
+
+    private boolean autoScanMode = false;
+    private ToggleButton toggleButton;
+    private Button autoScanBtn;
+    private boolean toggleMode = false;
 
     //region Implement View Event
     @Override
@@ -209,11 +209,11 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
         super.onCreate(savedInstanceState);
         setContentView(R.layout.scan);
         surfaceView = findViewById(R.id.surfacev);
-        depthSurfaceView=findViewById(R.id.surfacev);
-        degView=findViewById(R.id.textdeg);
+        depthSurfaceView = findViewById(R.id.surfacev);
+        degView = findViewById(R.id.textdeg);
         displayRotationHelper = new DisplayRotationHelper(/*context=*/ this);
-        pc= new ArrayList<>();
-        Button twoDbtn=(Button)findViewById(R.id.twodee);
+        pc = new ArrayList<>();
+        Button twoDbtn = (Button) findViewById(R.id.twodee);
         twoDbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -226,7 +226,56 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
 
         // Set up renderer.
         render = new SampleRender(surfaceView, this, getAssets());
-//    depthRender=new SampleRender(depthSurfaceView, new SampleRender.Renderer() {
+
+        //toggleButton初始化
+        toggleButton = findViewById(R.id.ToggleButton);
+        toggleButton.setTextOff("關"); //設定未選取時的文字
+        toggleButton.setTextOn("開"); //設定選取時的文字
+        toggleButton.setChecked(toggleMode);    //設定按紐狀態 - true:選取, false:未選取 預設為false
+        toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    degView.append("自動選取:開" + "\n");
+                    toggleMode = true;
+                } else {
+                    degView.append("自動選取:關" + "\n");
+                    toggleMode = false;
+                }
+            }
+        });
+
+        //autoScanBtn初始化
+        autoScanBtn = findViewById(R.id.autoScanBtn);
+        //監聽autoScanBtn onclick事件
+        //用於 (開啟/關閉) 是否要計算World Point，計算工作仍於 onDrawFrame 中完執行，避免因 frame 生命週期結束導到無法取得
+        autoScanBtn.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        degView.append("CALCULATE World Point START");
+                        //set autoScan boolean true
+                        autoScanMode = true;
+                    }
+                });
+
+        installRequested = false;
+
+        depthSettings.onCreate(this);
+        instantPlacementSettings.onCreate(this);
+        ImageButton settingsButton = findViewById(R.id.settings_button2);
+        settingsButton.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        PopupMenu popup = new PopupMenu(ScanActivity.this, v);
+                        popup.setOnMenuItemClickListener(ScanActivity.this::settingsMenuClick);
+                        popup.inflate(R.menu.settings_menu);
+                        popup.show();
+                    }
+                });
+
+//      depthRender=new SampleRender(depthSurfaceView, new SampleRender.Renderer() {
 //      @Override
 //      public void onSurfaceCreated(SampleRender render) {
 //        depthBackgroundRender=new BackgroundRenderer(render);
@@ -274,36 +323,22 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
 //
 //      }
 //    },getAssets());
-
-        installRequested = false;
-
-        depthSettings.onCreate(this);
-        instantPlacementSettings.onCreate(this);
-        ImageButton settingsButton = findViewById(R.id.settings_button2);
-        settingsButton.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        PopupMenu popup = new PopupMenu(ScanActivity.this, v);
-                        popup.setOnMenuItemClickListener(ScanActivity.this::settingsMenuClick);
-                        popup.inflate(R.menu.settings_menu);
-                        popup.show();
-                    }
-                });
-
     }
-    private void passTwoD(){
+
+    private void passTwoD() {
             /*degView=findViewById(R.id.textdeg);
             for(com.google.ar.core.examples.java.common.helpers.Point p:PointCloudSaving.pointC){
                 degView.append(""+p.getX()+p.getY()+p.getZ());
             }*/
-            PointCloudSaving.pointC=pc;
-            Intent intent=new Intent(this,PointCloudDrawing.class);
-            //intent.putExtra("data",pc);
-            startActivity(intent);
+        PointCloudSaving.pointC = pc;
+        Intent intent = new Intent(this, PointCloudDrawing.class);
+        //intent.putExtra("data",pc);
+        startActivity(intent);
     }
 
-    /** Menu button to launch feature specific settings. */
+    /**
+     * Menu button to launch feature specific settings.
+     */
     protected boolean settingsMenuClick(MenuItem item) {
         if (item.getItemId() == R.id.depth_settings) {
             launchDepthSettingsMenuDialog();
@@ -485,7 +520,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
                     Shader.createFromAssets(
                             render, "shaders/point_cloud.vert", "shaders/point_cloud.frag", /*defines=*/ null)
                             .setVec4(
-                                    "u_Color", new float[] {31.0f / 255.0f, 188.0f / 255.0f, 210.0f / 255.0f, 1.0f})
+                                    "u_Color", new float[]{31.0f / 255.0f, 188.0f / 255.0f, 210.0f / 255.0f, 1.0f})
                             .setFloat("u_PointSize", 5.0f);
             // four entries per vertex: X, Y, Z, confidence
             pointCloudVertexBuffer =
@@ -535,13 +570,13 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
     public void onSurfaceChanged(SampleRender render, int width, int height) {
         displayRotationHelper.onSurfaceChanged(width, height);
         virtualSceneFramebuffer.resize(width, height);
-        viewWidth=width;
-        viewHeight=height;
+        viewWidth = width;
+        viewHeight = height;
         //deg=displayRotationHelper.GetDisplayRotation();
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                String msg=String.format("widrh:%d\r\nheight:%d\r\ndeg:%f",viewWidth,viewHeight,deg);
+                String msg = String.format("widrh:%d\r\nheight:%d\r\ndeg:%f", viewWidth, viewHeight, deg);
                 degView.setText(msg);
             }
         });
@@ -549,7 +584,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
     }
 
     @Override
-    public void onDrawFrame(SampleRender render) {
+    public void onDrawFrame(SampleRender render){
         if (session == null) {
             return;
         }
@@ -559,7 +594,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
         // initialized during the execution of onSurfaceCreated.
         if (!hasSetTextureNames) {
             session.setCameraTextureNames(
-                    new int[] {backgroundRenderer.getCameraColorTexture().getTextureId()});
+                    new int[]{backgroundRenderer.getCameraColorTexture().getTextureId()});
             hasSetTextureNames = true;
         }
 
@@ -568,7 +603,6 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
         // Notify ARCore session that the view size changed so that the perspective matrix and
         // the video background can be properly adjusted.
         displayRotationHelper.updateSessionIfNeeded(session);
-
 
 
         // Obtain the current frame from ARSession. When the configuration is set to
@@ -610,14 +644,14 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
         }
 
         Collection<Plane> planes = session.getAllTrackables(Plane.class);
-        FloatBuffer pointCloudValue=null;
+        FloatBuffer pointCloudValue = null;
         // Get projection matrix.
         camera.getProjectionMatrix(projectionMatrix, 0, Z_NEAR, Z_FAR);
 
         // Get camera matrix and draw.
         camera.getViewMatrix(viewMatrix, 0);
 
-        float[] viewProjectMatrix=new float[16];
+        float[] viewProjectMatrix = new float[16];
         Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
 
 //    if(camera.getTrackingState()==TrackingState.TRACKING && firstDraw  ){
@@ -641,12 +675,12 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
 //        firstDraw=false;
 //      }
 //    }
+        autoScan(frame, camera, toggleMode);
 
         backgroundRenderer.drawBackground(render);
 
         // Handle one tap per frame.
         handleTap(frame, camera);
-
 
 
         // Keep the screen unlocked while tracking, but allow it to lock when tracking stops.
@@ -683,12 +717,11 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
         }
 
         // If not tracking, don't draw 3D objects.
-        if (camera.getTrackingState() == TrackingState.PAUSED){
+        if (camera.getTrackingState() == TrackingState.PAUSED) {
             return;
         }
 
         // -- Draw non-occluded virtual objects (planes, point cloud)
-
 
 
 //    PointCloudHelper.GetPointCloud(frame,viewWidth,viewHeight,10);
@@ -707,7 +740,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
 
         // Visualize tracked points.
         // Use try-with-resources to automatically release the point cloud.
-        if(pointCloudValue==null) {
+        if (pointCloudValue == null) {
             try (PointCloud pointCloud = frame.acquirePointCloud()) {
                 if (pointCloud.getTimestamp() > lastPointCloudTimestamp) {
                     pointCloudVertexBuffer.set(pointCloud.getPoints());
@@ -716,12 +749,11 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
                 pointCloudShader.setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
                 render.draw(pointCloudMesh, pointCloudShader);
             }
-        }else{
+        } else {
             pointCloudVertexBuffer.set(pointCloudValue);
             pointCloudShader.setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
             render.draw(pointCloudMesh, pointCloudShader);
         }
-
 
 
         // Visualize planes.
@@ -739,7 +771,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
         // Visualize anchors created by touch.
         render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f);
         for (Anchor anchor : anchors) {
-            TrackingState anchorTracjing=anchor.getTrackingState();
+            TrackingState anchorTracjing = anchor.getTrackingState();
 //      if (anchor.getTrackingState() != TrackingState.TRACKING) {
 //        continue;
 //      }
@@ -762,6 +794,139 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
         backgroundRenderer.drawVirtualScene(render, virtualSceneFramebuffer, Z_NEAR, Z_FAR);
     }
 
+    private void toWorldCoordinate(float xcor, float ycor, Frame frame) {
+        float x = xcor;
+        float y = ycor;
+        int colSum = viewHeight;
+        int rowSum = viewWidth;
+        ByteBuffer originXBuffer = ByteBuffer.allocateDirect(colSum * rowSum);
+        ByteBuffer originYBuffer = ByteBuffer.allocateDirect(colSum * rowSum);
+        ByteBuffer worldXBuffer = ByteBuffer.allocateDirect(colSum * rowSum);
+        ByteBuffer worldYBuffer = ByteBuffer.allocateDirect(colSum * rowSum);
+        ByteBuffer worldZBuffer = ByteBuffer.allocateDirect(colSum * rowSum);
+        ByteBuffer DepthBuffer = ByteBuffer.allocateDirect(colSum * rowSum);
+        ByteBuffer ColorBuffer = ByteBuffer.allocateDirect(colSum * rowSum);
+        ByteBuffer colorABuffer = ByteBuffer.allocateDirect(colSum * rowSum);
+        ByteBuffer colorRBuffer = ByteBuffer.allocateDirect(colSum * rowSum);
+        ByteBuffer colorGBuffer = ByteBuffer.allocateDirect(colSum * rowSum);
+        ByteBuffer colorBBuffer = ByteBuffer.allocateDirect(colSum * rowSum);
+        ByteBuffer degBuffer = ByteBuffer.allocateDirect(colSum * rowSum);
+
+        float depthXScale = 1;
+        float depthYScale = 1;
+        int bufferSize = viewHeight * viewWidth * 4;
+        ByteBuffer colorBuffer = ByteBuffer.allocateDirect(bufferSize);
+        ByteBuffer depthBuffer = ByteBuffer.allocateDirect(bufferSize / 2);
+
+//                originYBuffer.putInt(y);
+
+        //用depth方法實驗
+        int byteIndex = 0;
+        int bytePerPixel = 2;
+        int rowStride = 160;
+        int depthWidth = 160;
+        int depthHeight = 120;
+
+        try (Image depthImage = frame.acquireDepthImage()) {
+            depthWidth = depthImage.getWidth();
+            depthHeight = depthImage.getHeight();
+            depthXScale = (float) depthWidth / (float) Math.max(viewWidth, viewHeight);
+            depthYScale = (float) depthHeight / (float) Math.min(viewWidth, viewHeight);
+            Image.Plane plane = depthImage.getPlanes()[0];
+            bytePerPixel = plane.getPixelStride();
+            rowStride = plane.getRowStride();
+            depthBuffer = plane.getBuffer();
+        } catch (NotYetAvailableException e) {
+//            e.printStackTrace();
+        }
+
+        int xDepth = (int) (y * depthXScale);
+        int yDepth = (int) ((viewWidth - x) * depthYScale);
+
+
+        int index = (int) ((viewHeight - y) * viewWidth + x) * 4;
+        int b = colorBuffer.get(index) & 0xff;
+//                colorBBuffer.putInt(b);
+        int g = colorBuffer.get(index + 1) & 0xff;
+//                colorGBuffer.putInt(g);
+        int r = colorBuffer.get(index + 2) & 0xff;
+//                colorRBuffer.putInt(r);
+        int a = colorBuffer.get(index + 3) & 0xff;
+//                colorABuffer.putInt(a);
+        int color = 0xff000000 + (r << 16) + (g << 8) + b;
+//                ColorBuffer.putInt(color);
+        byteIndex = (int) (xDepth * bytePerPixel + yDepth * rowStride);
+        int depth1 = depthBuffer.get(byteIndex) & 0xff;
+        int depth2 = depthBuffer.get(byteIndex + 1) & 0xff;
+        short depth = (short) (depth1 + (depth2 << 8));
+//                DepthBuffer.putShort(depth);
+
+        float[] cloudPoint = new float[4];
+
+        float[] viewProjectMatrix = new float[16];
+        Matrix.multiplyMM(viewProjectMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
+
+        float[] xyzw = PointCloudHelper.screenPointToRay(x, y, depth, viewWidth, viewHeight, viewProjectMatrix);
+        float[] xyz = {
+                xyzw[0],
+                xyzw[1],
+                xyzw[2]
+        };
+        float[] ori = {0, 0, 0, 1f};
+        Pose pose = new Pose(xyz, ori);
+
+        Anchor anchor = session.createAnchor(pose);
+        float finalDepthYScale = depthYScale;
+        float finalDepthXScale = depthXScale;
+        int finalDepthWidth = depthWidth;
+        int finalDepthHeight = depthHeight;
+//                worldXBuffer.putFloat(xyz[0]);
+//                worldYBuffer.putFloat(xyz[1]);
+//                worldZBuffer.putFloat(xyz[2]);
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                String msg = String.format("width:%d height:%d deg:%f\r\noriginX:%f\toriginY:%f\r\nworldX:%f\tworldY:%f\tworldZ:%f\r\na:%d r:%d g:%d b:%d c:%d\r\ndepth:%d dx:%d dy:%d\r\n\r\n",
+                        viewWidth, viewHeight, deg,
+                        x, y,
+                        xyz[0], xyz[1], xyz[2],
+                        a, r, g, b, color,
+                        depth, xDepth, yDepth);
+                degView.append(msg);
+            }
+        });
+
+
+    }
+    private void autoScan(Frame frame, Camera camera, Boolean mode) {
+        if (mode == true) {
+//            runOnUiThread(new Runnable() {
+//
+//                @Override
+//                public void run() {
+//
+//                    // Stuff that updates the UI
+//                    degView.append("autoScan Success!");
+//
+//                }
+//            });
+            //width 1080 height 2195
+            int colSum = viewHeight;
+            int rowSum = viewWidth;
+
+            for (int x = 0; x < rowSum; x += 100) {
+                for (int y = 0; y < colSum; y += 100) {
+//                Thread.sleep(5*1000);
+                    try {
+                        toWorldCoordinate(x, y, frame);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
     // Handle only one tap per frame, as taps are usually low frequency compared to frame rate.
     private void handleTap(Frame frame, Camera camera) {
         //找到全部的TAP
@@ -794,75 +959,75 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
                         anchors.get(0).detach();
                         anchors.remove(0);
                     }
-                    float[] viewProjectMatrix=new float[16];
-                    Matrix.multiplyMM(viewProjectMatrix,0,projectionMatrix,0,viewMatrix,0);
+                    float[] viewProjectMatrix = new float[16];
+                    Matrix.multiplyMM(viewProjectMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
                     //對照
                     Pose hitPos = hit.getHitPose();
                     //找出點擊在螢幕的XY位置
-                    float x=tap.getX();
-                    float y=tap.getY();
-                    float depthXScale=1;
-                    float depthYScale=1;
+                    float x = tap.getX();
+                    float y = tap.getY();
+                    float depthXScale = 1;
+                    float depthYScale = 1;
                     //??
-                    float xStep=1f / viewWidth;
-                    float yStep=1f / viewHeight;
+                    float xStep = 1f / viewWidth;
+                    float yStep = 1f / viewHeight;
                     //設定暫存區
-                    int bufferSize=viewHeight*viewWidth*4;
-                    ByteBuffer colorBuffer=ByteBuffer.allocateDirect(bufferSize);
-                    ByteBuffer depthBuffer=ByteBuffer.allocateDirect(bufferSize/2);
+                    int bufferSize = viewHeight * viewWidth * 4;
+                    ByteBuffer colorBuffer = ByteBuffer.allocateDirect(bufferSize);
+                    ByteBuffer depthBuffer = ByteBuffer.allocateDirect(bufferSize / 2);
                     //GLE
 //          GLES30.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,backgroundRenderer.getCameraColorTexture().getTextureId());
-                    GLES30.glReadPixels(0,0,viewWidth,viewHeight,GLES30.GL_RGBA,GLES30.GL_UNSIGNED_BYTE,colorBuffer);
+                    GLES30.glReadPixels(0, 0, viewWidth, viewHeight, GLES30.GL_RGBA, GLES30.GL_UNSIGNED_BYTE, colorBuffer);
 //          GLES30.glBindTexture(GLES30.GL_TEXTURE_2D,backgroundRenderer.getCameraDepthTexture().getTextureId());
 //          GLES30.glReadPixels(0,0,viewWidth,viewHeight,GLES30.GL_RG8,GLES30.GL_UNSIGNED_BYTE,depthBuffer);
 
                     //基本資料型別設定
-                    int byteIndex=0;
-                    int bytePerPixel=2;
-                    int rowStride=160;
-                    int depthWidth=160;
-                    int depthHeight=120;
+                    int byteIndex = 0;
+                    int bytePerPixel = 2;
+                    int rowStride = 160;
+                    int depthWidth = 160;
+                    int depthHeight = 120;
                     //
-                    try(Image depthImage=frame.acquireDepthImage()){
-                        depthWidth=depthImage.getWidth();
-                        depthHeight=depthImage.getHeight();
-                        depthXScale=(float)depthWidth / (float) Math.max(viewWidth,viewHeight);
-                        depthYScale=(float)depthHeight / (float)Math.min(viewWidth, viewHeight);
-                        Image.Plane plane=depthImage.getPlanes()[0];
-                        bytePerPixel=plane.getPixelStride();
-                        rowStride=plane.getRowStride();
-                        depthBuffer=plane.getBuffer();
+                    try (Image depthImage = frame.acquireDepthImage()) {
+                        depthWidth = depthImage.getWidth();
+                        depthHeight = depthImage.getHeight();
+                        depthXScale = (float) depthWidth / (float) Math.max(viewWidth, viewHeight);
+                        depthYScale = (float) depthHeight / (float) Math.min(viewWidth, viewHeight);
+                        Image.Plane plane = depthImage.getPlanes()[0];
+                        bytePerPixel = plane.getPixelStride();
+                        rowStride = plane.getRowStride();
+                        depthBuffer = plane.getBuffer();
                     } catch (NotYetAvailableException e) {
 //            e.printStackTrace();
                     }
                     //翻轉=>XY互換且縮放
-                    int xDepth=(int)(y*depthXScale);
-                    int yDepth=(int)((viewWidth-x)*depthYScale);
+                    int xDepth = (int) (y * depthXScale);
+                    int yDepth = (int) ((viewWidth - x) * depthYScale);
 
 
-                    int index=(int)((viewHeight-y)*viewWidth+x)*4;
+                    int index = (int) ((viewHeight - y) * viewWidth + x) * 4;
                     int b = colorBuffer.get(index) & 0xff;
-                    int g= colorBuffer.get(index+1) & 0xff;
-                    int r= colorBuffer.get(index+2) & 0xff;
-                    int a= colorBuffer.get(index+3)  & 0xff;
-                    int color=0xff000000 +(r << 16) + (g << 8)+b;
-                    byteIndex=(int)(xDepth*bytePerPixel+yDepth*rowStride);
+                    int g = colorBuffer.get(index + 1) & 0xff;
+                    int r = colorBuffer.get(index + 2) & 0xff;
+                    int a = colorBuffer.get(index + 3) & 0xff;
+                    int color = 0xff000000 + (r << 16) + (g << 8) + b;
+                    byteIndex = (int) (xDepth * bytePerPixel + yDepth * rowStride);
                     int depth1 = depthBuffer.get(byteIndex) & 0xff;
-                    int depth2 = depthBuffer.get(byteIndex+1) & 0xff;
-                    short depth=(short) (depth1+(depth2 << 8));
+                    int depth2 = depthBuffer.get(byteIndex + 1) & 0xff;
+                    short depth = (short) (depth1 + (depth2 << 8));
 
 
-                    float[] cloudPoint=new float[4];
+                    float[] cloudPoint = new float[4];
 
 
-                    float[] xyzw=PointCloudHelper.screenPointToRay(x,y,depth,viewWidth,viewHeight,viewProjectMatrix);
-                    float[] xyz={
+                    float[] xyzw = PointCloudHelper.screenPointToRay(x, y, depth, viewWidth, viewHeight, viewProjectMatrix);
+                    float[] xyz = {
                             xyzw[0],
                             xyzw[1],
                             xyzw[2]
                     };
-                    float[] ori={0,0,0,1f};
-                    Pose pose=new Pose(xyz,ori);
+                    float[] ori = {0, 0, 0, 1f};
+                    Pose pose = new Pose(xyz, ori);
 
                     Anchor anchor = session.createAnchor(pose);
                     float finalDepthYScale = depthYScale;
@@ -873,12 +1038,12 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            String msg=String.format("widrh:%d height:%d deg:%f\r\nTapX:%f\tTapY:%f\r\nPose:%f %f %f\r\nx:%f\ty:%f\tz:%f\r\na:%d r:%d g:%d b:%d c:%d\r\ndepth:%d dx:%d dy:%d\r\ndepthHidth:%d depthHeight:%d\r\nxScale:%f yScale:%f",
-                                    viewWidth,viewHeight,deg,
-                                    x,y,
-                                    hitPos.tx(),hitPos.ty(), hitPos.tz(),
-                                    xyz[0],xyz[1],xyz[2],
-                                    a,r,g,b,color,
+                            String msg = String.format("widrh:%d height:%d deg:%f\r\nTapX:%f\tTapY:%f\r\nPose:%f %f %f\r\nx:%f\ty:%f\tz:%f\r\na:%d r:%d g:%d b:%d c:%d\r\ndepth:%d dx:%d dy:%d\r\ndepthHidth:%d depthHeight:%d\r\nxScale:%f yScale:%f",
+                                    viewWidth, viewHeight, deg,
+                                    x, y,
+                                    hitPos.tx(), hitPos.ty(), hitPos.tz(),
+                                    xyz[0], xyz[1], xyz[2],
+                                    a, r, g, b, color,
                                     depth, xDepth, yDepth,
                                     finalDepthWidth, finalDepthHeight,
                                     finalDepthXScale, finalDepthYScale);
@@ -886,7 +1051,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
                             degView.setTextColor(color);
 //              degView.setBackgroundColor((Integer.reverse(color)&0xFFFFFF)+0xee000000);
                             degView.setBackgroundColor(0xeeffffff);
-                            com.google.ar.core.examples.java.common.helpers.Point nupoint=new com.google.ar.core.examples.java.common.helpers.Point(xyz[0],xyz[1],xyz[2]);
+                            com.google.ar.core.examples.java.common.helpers.Point nupoint = new com.google.ar.core.examples.java.common.helpers.Point(xyz[0], xyz[1], xyz[2]);
                             pc.add(nupoint);
                         }
                     });
@@ -908,7 +1073,6 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
             }
         }
     }
-
     /**
      * Shows a pop-up dialog on the first call, determining whether the user wants to enable
      * depth-based occlusion. The result of this dialog can be retrieved with useDepthForOcclusion().

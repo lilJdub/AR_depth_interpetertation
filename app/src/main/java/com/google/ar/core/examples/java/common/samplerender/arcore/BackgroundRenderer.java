@@ -19,6 +19,7 @@ import android.media.Image;
 import android.opengl.GLES30;
 import com.google.ar.core.Coordinates2d;
 import com.google.ar.core.Frame;
+import com.google.ar.core.Session;
 import com.google.ar.core.examples.java.common.samplerender.Framebuffer;
 import com.google.ar.core.examples.java.common.samplerender.Mesh;
 import com.google.ar.core.examples.java.common.samplerender.SampleRender;
@@ -75,8 +76,7 @@ public class BackgroundRenderer {
 
   /**
    * Allocates and initializes OpenGL resources needed by the background renderer. Must be called
-   * during a {@link SampleRender.Renderer} callback, typically in {@link
-   * SampleRender.Renderer#onSurfaceCreated()}.
+   * during a {@link SampleRender.Renderer} callback, typically in {@link   * SampleRenderRendere#onSurfaceCreated()}.
    */
   public BackgroundRenderer(SampleRender render) {
     cameraColorTexture =
@@ -223,7 +223,7 @@ public class BackgroundRenderer {
 
   /**
    * Draws the virtual scene. Any objects rendered in the given {@link Framebuffer} will be drawn
-   * given the previously specified {@link OcclusionMode}.
+   * given the previously specified {@linkOcclusionMode}.
    *
    * <p>Virtual content should be rendered using the matrices provided by {@link
    * com.google.ar.core.Camera#getViewMatrix(float[], int)} and {@link

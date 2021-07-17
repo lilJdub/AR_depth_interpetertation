@@ -1,15 +1,8 @@
 package com.google.ar.core.examples.java.helloar;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 
 import com.google.ar.core.examples.java.common.helpers.Point;
 
