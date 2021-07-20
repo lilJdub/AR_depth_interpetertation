@@ -897,6 +897,8 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
                         a, r, g, b, color,
                         depth, xDepth, yDepth);
                 degView.append(msg);
+                com.google.ar.core.examples.java.common.helpers.Point newPoint=new com.google.ar.core.examples.java.common.helpers.Point(xyz[0],xyz[1],xyz[2]);
+                pc.add(newPoint);
             }
         });
 
