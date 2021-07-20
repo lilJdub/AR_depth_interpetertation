@@ -23,6 +23,7 @@ import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -31,6 +32,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.RadioGroup;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -133,7 +135,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
     private SampleRender depthRender;
     private GLSurfaceView surfaceView;
     private TextView degView;
-
+    private ScrollView scrView;
     private boolean installRequested;
 
     private Session session;
@@ -211,6 +213,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
         surfaceView = findViewById(R.id.surfacev);
         depthSurfaceView = findViewById(R.id.surfacev);
         degView = findViewById(R.id.textdeg);
+        degView.setMovementMethod(new ScrollingMovementMethod());
         displayRotationHelper = new DisplayRotationHelper(/*context=*/ this);
         pc = new ArrayList<>();
         Button twoDbtn = (Button) findViewById(R.id.twodee);

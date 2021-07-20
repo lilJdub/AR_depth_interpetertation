@@ -28,7 +28,8 @@
         android:id="@+id/textdeg"
         android:layout_width="270dp"
         android:layout_height="203dp"
-        android:text="TextView" />
+        android:text="TextView"
+        android:scrollbars = "vertical"/>
 
     <Button
         android:id="@+id/twodee"
