@@ -897,7 +897,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
                         a, r, g, b, color,
                         depth, xDepth, yDepth);
                 degView.append(msg);
-                com.google.ar.core.examples.java.common.helpers.Point newPoint=new com.google.ar.core.examples.java.common.helpers.Point(xyz[0],xyz[1],xyz[2]);
+                com.google.ar.core.examples.java.common.helpers.Point newPoint=new com.google.ar.core.examples.java.common.helpers.Point(xyz[0],xyz[1],xyz[2],color);
                 pc.add(newPoint);
             }
         });
@@ -1056,7 +1056,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
                             degView.setTextColor(color);
 //              degView.setBackgroundColor((Integer.reverse(color)&0xFFFFFF)+0xee000000);
                             degView.setBackgroundColor(0xeeffffff);
-                            com.google.ar.core.examples.java.common.helpers.Point nupoint = new com.google.ar.core.examples.java.common.helpers.Point(xyz[0], xyz[1], xyz[2]);
+                            com.google.ar.core.examples.java.common.helpers.Point nupoint = new com.google.ar.core.examples.java.common.helpers.Point(xyz[0], xyz[1], xyz[2],color);
                             pc.add(nupoint);
                         }
                     });

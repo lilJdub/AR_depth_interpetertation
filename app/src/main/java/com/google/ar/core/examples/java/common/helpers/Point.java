@@ -6,11 +6,13 @@ public class Point {
     public float y;
     public float z;
     public float replacedX;
+    public int color;
 
-    public Point(float x,float y,float z) {
+    public Point(float x,float y,float z,int color) {
         this.x=x;
         this.y=y;
         this.z=z;
+        this.color=color;
     }
     public void setReplacedX(float n){
         replacedX=n;

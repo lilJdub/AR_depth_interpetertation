@@ -13,7 +13,7 @@ import com.google.ar.core.examples.java.common.helpers.Point;
 import java.util.ArrayList;
 public class PointCloudView extends View {
     private static final String TAG = "pointCloudView";
-    private static final String TAG2 = "ReplaceX";
+    private static final String TAG2 = "colors";
     private Paint pointPaint;
     private Paint startPaint;
     private final int paintColor=Color.RED;
@@ -28,10 +28,6 @@ public class PointCloudView extends View {
         pointPaint.setColor(paintColor);
         pointPaint.setAntiAlias(true);
         pointPaint.setStrokeWidth(20);
-        startPaint=new Paint();
-        startPaint.setColor(Color.CYAN);
-        startPaint.setAntiAlias(true);
-        startPaint.setStrokeWidth(20);
     }
     @Override
     protected void onDraw(Canvas canvas){
@@ -54,6 +50,9 @@ public class PointCloudView extends View {
 
         rePlaceX(pp);
         for(Point p:pp){
+            //change paint color based on point p
+            Log.d(TAG2, "onDraw: "+p.color);
+            pointPaint.setColor(p.color);
             canvas.drawPoint(p.replacedX*300f+100f, p.getY(), pointPaint);
             Log.d(TAG, "onDraw:x=" + save + " y:" + p.getY());
         }
@@ -72,4 +71,5 @@ public class PointCloudView extends View {
             Log.d(TAG2, "rePlace: newX"+q.replacedX);
         }
     }
+
 }
