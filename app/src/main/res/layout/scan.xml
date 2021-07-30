@@ -33,39 +33,69 @@
 
     <Button
         android:id="@+id/twodee"
-        android:layout_width="252dp"
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_height="59dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginStart="242dp"
-        android:layout_marginTop="722dp"
-        android:layout_marginEnd="0dp"
-        android:layout_marginBottom="0dp"
+        android:layout_marginStart="233dp"
+        android:layout_marginTop="655dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="17dp"
         android:text="make layout" />
 
     <Button
         android:id="@+id/autoScanBtn"
-        android:layout_width="242dp"
-        android:layout_height="wrap_content"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginStart="0dp"
-        android:layout_marginTop="722dp"
+        android:layout_marginStart="21dp"
+        android:layout_marginTop="727dp"
         android:layout_marginEnd="0dp"
-        android:layout_marginBottom="0dp"
+        android:layout_marginBottom="4dp"
         android:text="Auto Scan" />
 
     <ToggleButton
         android:id="@+id/ToggleButton"
-        android:layout_width="216dp"
-        android:layout_height="172dp"
+        android:layout_width="121dp"
+        android:layout_height="76dp"
+        android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginEnd="250dp"
-        android:layout_marginBottom="232dp"
+        android:layout_marginStart="277dp"
+        android:layout_marginEnd="14dp"
+        android:layout_marginBottom="514dp"
         android:background="@drawable/togglebtn_selector"
         android:text="ToggleButton" />
+
+    <Button
+        android:id="@+id/resolving"
+        android:layout_width="146dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="38dp"
+        android:layout_marginTop="654dp"
+        android:layout_marginEnd="227dp"
+        android:layout_marginBottom="29dp"
+        android:text="Resolve" />
+
+    <EditText
+        android:id="@+id/input_anchor"
+        android:layout_width="109dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="286dp"
+        android:layout_marginTop="83dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="597dp"
+        android:hint="input ID" />
 </RelativeLayout>

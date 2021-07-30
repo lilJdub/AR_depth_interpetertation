@@ -97,6 +97,21 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
+//Cloud anchor-add ons
+import android.content.SharedPreferences;
+import android.widget.EditText;
+import com.google.ar.core.exceptions.CloudAnchorsNotConfiguredException;
+//import com.google.common.base.Preconditions;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import java.util.concurrent.TimeUnit;
+import static com.google.ar.core.Session.FeatureMapQuality.GOOD;
+import static com.google.ar.core.Session.FeatureMapQuality.INSUFFICIENT;
+import static com.google.ar.core.Session.FeatureMapQuality.SUFFICIENT;
+
 /**
  * This is a simple example that shows how to create an augmented reality (AR) application using the
  * ARCore API. The application will display any detected planes and will allow the user to tap on a
@@ -205,7 +220,23 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
     private Button autoScanBtn;
     private boolean toggleMode = false;
 
-    //region Implement View Event
+    //ADD
+    protected static final String HOSTED_ANCHOR_IDS = "anchor_ids";
+    protected static final String HOSTED_ANCHOR_NAMES = "anchor_names";
+    protected static final String HOSTED_ANCHOR_MINUTES = "anchor_minutes";
+    private String cloudAnchorId;
+    private SharedPreferences sharedPreferences;
+    //INIT cloud anchor state
+    private enum AppAnchorState {
+        NONE,
+        HOSTING,
+        HOSTED
+    }
+    private AppAnchorState appAnchorState = AppAnchorState.NONE;
+    private CloudAnchorManager cloudAnchorManager;
+    private final Object anchorLock = new Object();
+    private Anchor anchor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -229,6 +260,21 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
 
         // Set up renderer.
         render = new SampleRender(surfaceView, this, getAssets());
+
+        //add resolve button.
+        Button resolveButton=(Button)findViewById(R.id.resolving);
+        EditText resolveInput=(EditText)findViewById(R.id.input_anchor);
+        //resolve button initiated.
+        resolveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String resolve_ID=resolveInput.getText().toString();
+                Toast.makeText(getApplicationContext(), "resolve ID: "+resolve_ID, Toast.LENGTH_SHORT).show();
+                Log.d("resolve ID: ",resolve_ID);
+                resolveCloudAnchor(resolve_ID);
+            }
+        });
+
 
         //toggleButton初始化
         toggleButton = findViewById(R.id.ToggleButton);
@@ -326,6 +372,11 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
 //
 //      }
 //    },getAssets());
+    }
+    //add for resolve
+    public Anchor resolveCloudAnchor(String cloudAnchorId){
+        session.resolveCloudAnchor(cloudAnchorId);
+        return anchor;
     }
 
     private void passTwoD() {
