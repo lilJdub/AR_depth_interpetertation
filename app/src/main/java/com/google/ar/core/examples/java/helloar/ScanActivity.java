@@ -101,7 +101,7 @@ import java.util.List;
 import android.content.SharedPreferences;
 import android.widget.EditText;
 import com.google.ar.core.exceptions.CloudAnchorsNotConfiguredException;
-//import com.google.common.base.Preconditions;
+import com.google.common.base.Preconditions;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -747,7 +747,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
         backgroundRenderer.drawBackground(render);
 
         // Handle one tap per frame.
-        handleTap(frame, camera);
+        //handleTap(frame, camera);
 
         //add
         cloudAnchorManager.onUpdate();

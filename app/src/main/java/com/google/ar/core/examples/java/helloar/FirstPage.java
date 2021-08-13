@@ -94,7 +94,7 @@ public class FirstPage extends Activity {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "createUserWithEmail:success");
                             FirebaseUser user = mAuth.getCurrentUser();
-                            //給他們輸入名字ㄅ
+                            //給他們輸入名字
                             //inflateName(user);
                             updateUI(user);
                         } else {
