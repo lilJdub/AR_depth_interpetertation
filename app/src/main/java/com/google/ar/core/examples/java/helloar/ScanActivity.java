@@ -933,7 +933,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
         int depth2 = depthBuffer.get(byteIndex + 1) & 0xff;
         short depth = (short) (depth1 + (depth2 << 8));
 //                DepthBuffer.putShort(depth);
-
+        
         float[] cloudPoint = new float[4];
 
         float[] viewProjectMatrix = new float[16];

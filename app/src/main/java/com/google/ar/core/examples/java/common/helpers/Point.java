@@ -1,6 +1,6 @@
 package com.google.ar.core.examples.java.common.helpers;
 
-
+//自定義了一個點-可以儲存各種資料
 public class Point {
     public float x;
     public float y;

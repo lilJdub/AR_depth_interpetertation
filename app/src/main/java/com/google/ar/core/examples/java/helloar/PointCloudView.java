@@ -11,6 +11,7 @@ import android.view.View;
 import com.google.ar.core.examples.java.common.helpers.Point;
 
 import java.util.ArrayList;
+//自己寫ㄉCLASS-定義畫布跟如何畫-畫什麼
 public class PointCloudView extends View {
     private static final String TAG = "pointCloudView";
     private static final String TAG2 = "colors";
@@ -34,19 +35,6 @@ public class PointCloudView extends View {
         super.onDraw(canvas);
         pp=PointCloudSaving.pointC;
         float save = 0;
-        /*for(Point p:pp) {
-            if(p.getX()<0){
-                save=p.getX()*-1;
-                canvas.drawPoint(save, p.getY(), pointPaint);
-                Log.d(TAG, "onDraw:x=" + save + " y:" + p.getY());
-            }
-            else{
-                canvas.drawPoint(p.getX(),p.getY(),pointPaint);
-                Log.d(TAG, "onDraw:x=" + p.getX() + " y:" + p.getY());
-            }
-        }*/
-
-        //finding out starting point
 
         rePlaceX(pp);
         for(Point p:pp){

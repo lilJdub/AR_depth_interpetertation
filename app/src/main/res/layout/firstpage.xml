@@ -51,9 +51,9 @@
             android:layout_marginTop="380dp"
             android:layout_marginEnd="100dp"
             android:layout_marginBottom="250dp"
-            android:text="Welcome to ArNiggas"
-            android:textSize="24dp"
-            android:textAlignment="center"/>
+            android:text="Welcome to ArRay"
+            android:textAlignment="center"
+            android:textSize="24dp" />
 
         <Button
             android:id="@+id/skip"

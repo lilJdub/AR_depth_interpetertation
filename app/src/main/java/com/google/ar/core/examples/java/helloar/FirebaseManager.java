@@ -30,7 +30,7 @@ import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 //import com.google.firebase.ktx.Firebase;
-
+//cloud anchor sample給的...我就照搬
 /** A helper class to manage all communications with Firebase. */
 class FirebaseManager {
     private static final String TAG =

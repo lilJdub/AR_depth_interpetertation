@@ -19,7 +19,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
 
-
+//主畫面-第一頁:有點無關緊要，那時候我試著給會員做登入的時候用到的 放了一個skip button跳過冗長的登入
 public class FirstPage extends Activity {
     private FirebaseAuth mAuth;
     public Button subBtn;

@@ -7,6 +7,7 @@ import com.google.firebase.components.Preconditions;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+//cloud anchor sample給的...我就照搬
 class CloudAnchorManager {
     interface CloudAnchorListener {
 

@@ -11,7 +11,7 @@ import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentActivity;
 
 import com.google.common.base.Preconditions;
-
+//cloud anchor sample給的...我就照搬
 public class HostDialogFragment extends DialogFragment {
     interface OkListener {
         /**
