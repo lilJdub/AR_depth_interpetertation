@@ -7,7 +7,9 @@ public class Point {
     public float z;
     public float replacedX;
     public int color;
-
+    public Point(){
+        // Default constructor required for calls to DataSnapshot.getValue(User.class)
+    }
     public Point(float x,float y,float z,int color) {
         this.x=x;
         this.y=y;

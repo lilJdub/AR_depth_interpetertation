@@ -26,10 +26,15 @@ public class PointCloudDrawing extends Activity {
     private static final String TAG ="starting save...";
     public ArrayList<Point>pp;
     public PointCloudView customCanvas;
-    private FirebaseDatabase mDatabase;
-    private DatabaseReference mDatabaseReference;
-    private static final String OkTAG ="Success";
-    private static final String NoTAG ="Success";
+
+    //firebase
+    private FirebaseDatabase mFirebaseDatabase;
+    private FirebaseAuth mAuth;
+    private DatabaseReference mDatabase;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    private DatabaseReference myRef;
+    private DatabaseReference myNextChild;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,14 +44,36 @@ public class PointCloudDrawing extends Activity {
         setContentView(customCanvas);
         Log.d(TAG, "onCreate: starting save...");
 
-        //這邊:)
-        //我想在這邊把pp存進我的firebase帳號裡面 但基本上下面兩行logd都沒有出來...
-        mDatabase= FirebaseDatabase.getInstance("https://deepnightdeepvibes-default-rtdb.firebaseio.com/");
-        mDatabaseReference= mDatabase.getReference();
-        DatabaseReference pointRef=mDatabaseReference.child("pointCloud");
-        pointRef.setValue(pp)
-                .addOnSuccessListener(unused -> Log.d(OkTAG, "onSuccess: Object saved successfully"))
-                .addOnFailureListener(e -> Log.d(NoTAG, "onFailure: Object saving failed"));
-        //https://deepnightdeepvibes-default-rtdb.firebaseio.com/
+        //把pp存進我的firebase帳號裡面.
+        //Authentication
+        mAuth= FirebaseAuth.getInstance();
+        mFirebaseDatabase=FirebaseDatabase.getInstance();
+        myRef=mFirebaseDatabase.getReference();
+        //看看用戶是否仍在登入狀態
+        mAuthListener=new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull @NotNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user=mAuth.getCurrentUser();
+                if(user!=null){
+                    Log.d(TAG, "onAuthStateChanged:signed_in");
+                }
+                else{
+                    Log.d(TAG, "onAuthStateChanged:signed_out");
+                }
+            }
+        };
+        savePointCloudtoFirebase();
+    }
+    //主要儲存的function
+    public void savePointCloudtoFirebase(){
+        mDatabase= FirebaseDatabase.getInstance().getReference();
+        pp=PointCloudSaving.pointC;
+        for(Point p:pp){
+            //用push()製造一個全新的子點以供辨識
+            myNextChild = mDatabase.push();
+           //在子點內儲存值
+            myNextChild.setValue(p);
+            Log.d(TAG, "savePointCloudtoFirebase : Saving Point....");
+        }
     }
 }
