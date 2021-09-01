@@ -11,20 +11,6 @@
 
         >
 
-        <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginStart="0dp"
-            android:layout_marginTop="23dp"
-            android:layout_marginEnd="0dp"
-            android:layout_marginBottom="386dp"
-            app:srcCompat="@drawable/cover" />
-
         <Button
             android:id="@+id/loginbtn"
             android:layout_width="match_parent"

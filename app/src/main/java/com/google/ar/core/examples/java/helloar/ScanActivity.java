@@ -102,6 +102,7 @@ import android.content.SharedPreferences;
 import android.widget.EditText;
 import com.google.ar.core.exceptions.CloudAnchorsNotConfiguredException;
 import com.google.common.base.Preconditions;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -237,6 +238,15 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
     private final Object anchorLock = new Object();
     private Anchor anchor;
 
+    //8/27
+    //firebase
+    private FirebaseDatabase mFirebaseDatabase;
+    private FirebaseAuth mAuth;
+    private DatabaseReference mDatabase;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    private DatabaseReference myRef;
+    private DatabaseReference myNextChild;
+    public ArrayList<com.google.ar.core.examples.java.common.helpers.Point>pp;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -397,10 +407,25 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
             for(com.google.ar.core.examples.java.common.helpers.Point p:PointCloudSaving.pointC){
                 degView.append(""+p.getX()+p.getY()+p.getZ());
             }*/
+        //存入一個儲存用Class
         PointCloudSaving.pointC = pc;
-        Intent intent = new Intent(this, PointCloudDrawing.class);
+        //Intent intent = new Intent(this, PointCloudDrawing.class);
+        //8/30 change activity
+        Intent intent = new Intent(this, DrawingPointFromDB.class);
         //intent.putExtra("data",pc);
         startActivity(intent);
+
+        //8/27
+        //存入Firebase內
+        mDatabase= FirebaseDatabase.getInstance().getReference();
+        pp=PointCloudSaving.pointC;
+        for(com.google.ar.core.examples.java.common.helpers.Point p:pp){
+            //用push()製造一個全新的子點以供辨識
+            myNextChild = mDatabase.push();
+            //在子點內儲存值
+            myNextChild.setValue(p);
+            Log.d(TAG, "savePointCloudtoFirebase : Saving Point....");
+        }
     }
 
     /**

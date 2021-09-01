@@ -64,6 +64,7 @@ public class PointCloudDrawing extends Activity {
         };
         savePointCloudtoFirebase();
     }
+
     //主要儲存的function
     public void savePointCloudtoFirebase(){
         mDatabase= FirebaseDatabase.getInstance().getReference();

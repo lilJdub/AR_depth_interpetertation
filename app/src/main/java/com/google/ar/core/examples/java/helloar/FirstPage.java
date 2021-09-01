@@ -31,7 +31,10 @@ public class FirstPage extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.firstpage);
+        //HERE
         mAuth = FirebaseAuth.getInstance();
+
+
         Button insta=(Button)findViewById(R.id.loginbtn);
         insta.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -96,7 +99,6 @@ public class FirstPage extends Activity {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "createUserWithEmail:success");
                             FirebaseUser user = mAuth.getCurrentUser();
-                            //給他們輸入名字
                             //inflateName(user);
                             updateUI(user);
                         } else {
@@ -142,7 +144,7 @@ public class FirstPage extends Activity {
         }
         else{
             //String userName = user.getDisplayName();
-            //這等之後再修
+            //這等HAAAAAAAARVEY再修
             String userid=user.getUid();
             Toast.makeText(FirstPage.this, "Hello"+userid,
                     Toast.LENGTH_SHORT).show();
