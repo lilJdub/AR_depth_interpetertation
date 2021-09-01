@@ -59,7 +59,7 @@ public class DrawingPointFromDB extends Activity {
                 }
             }
         };
-
+        //重點:用Valuelistener監聽資料庫狀態，再用datasnapshot(資料快照)抓下資料
         valueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
