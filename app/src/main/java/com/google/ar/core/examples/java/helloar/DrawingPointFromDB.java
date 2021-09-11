@@ -71,6 +71,14 @@ public class DrawingPointFromDB extends Activity {
                     tv.append("Y"+Y+"\n");
                     Double Z=ds.child("z").getValue(Double.class);
                     tv.append("Z"+Z+"\n");
+                    Integer A=ds.child("a").getValue(Integer.class);
+                    tv.append("A"+A+"\n");
+                    Integer R=ds.child("r").getValue(Integer.class);
+                    tv.append("R"+R+"\n");
+                    Integer G=ds.child("g").getValue(Integer.class);
+                    tv.append("G"+G+"\n");
+                    Integer B=ds.child("b").getValue(Integer.class);
+                    tv.append("B"+B+"\n");
                 }
             }
             @Override

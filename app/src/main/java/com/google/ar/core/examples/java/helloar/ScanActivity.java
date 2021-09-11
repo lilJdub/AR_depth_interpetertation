@@ -414,7 +414,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
         //8/30 change activity
         //Intent intent = new Intent(this, DrawingPointFromDB.class);
         //9/9 change activity
-        Intent intent = new Intent(this, OpenGLdemo.class);
+        Intent intent = new Intent(this, DrawingPointFromDB.class);
         //intent.putExtra("data",pc);
         startActivity(intent);
 
