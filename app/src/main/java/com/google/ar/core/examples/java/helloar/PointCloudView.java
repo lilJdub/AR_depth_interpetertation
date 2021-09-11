@@ -38,11 +38,7 @@ public class PointCloudView extends View {
 
         rePlaceX(pp);
         for(Point p:pp){
-            //change paint color based on point p
-            Log.d(TAG2, "onDraw: "+p.color);
-            pointPaint.setColor(p.color);
-            canvas.drawPoint(p.replacedX*300f+100f, p.getY(), pointPaint);
-            Log.d(TAG, "onDraw:x=" + save + " y:" + p.getY());
+
         }
     }
     public void rePlaceX(ArrayList<Point> poi){
@@ -55,8 +51,8 @@ public class PointCloudView extends View {
         }
         //正規最小頂點
         for(Point q:poi){
-            q.setReplacedX(q.x+(-1*min));
-            Log.d(TAG2, "rePlace: newX"+q.replacedX);
+            //q.setReplacedX(q.x+(-1*min));
+            //Log.d(TAG2, "rePlace: newX"+q.replacedX);
         }
     }
 

@@ -75,7 +75,7 @@ public class DrawingPointFromDB extends Activity {
             }
             @Override
             public void onCancelled(@NonNull @NotNull DatabaseError error) {
-
+                Log.d(TAG, "onCancelled: error.");
             }
         };
         rootRef.addListenerForSingleValueEvent(valueEventListener);

@@ -22,7 +22,8 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="false"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".DrawingPointFromDB"></activity>
+        <activity android:name=".OpenGLdemo"></activity>
+        <activity android:name=".DrawingPointFromDB" />
         <activity android:name=".PointCloudDrawing" />
         <activity android:name=".FirstPage">
             <intent-filter>

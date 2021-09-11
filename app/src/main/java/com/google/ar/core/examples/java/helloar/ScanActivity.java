@@ -121,6 +121,7 @@ import static com.google.ar.core.Session.FeatureMapQuality.SUFFICIENT;
 public class ScanActivity extends AppCompatActivity implements SampleRender.Renderer {
 
     private static final String TAG = ScanActivity.class.getSimpleName();
+    private static final String TAG2 = "BRUH";
 
     private static final String SEARCHING_PLANE_MESSAGE = "Searching for surfaces...";
     private static final String WAITING_FOR_TAP_MESSAGE = "Tap on a surface to place an object.";
@@ -411,7 +412,9 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
         PointCloudSaving.pointC = pc;
         //Intent intent = new Intent(this, PointCloudDrawing.class);
         //8/30 change activity
-        Intent intent = new Intent(this, DrawingPointFromDB.class);
+        //Intent intent = new Intent(this, DrawingPointFromDB.class);
+        //9/9 change activity
+        Intent intent = new Intent(this, OpenGLdemo.class);
         //intent.putExtra("data",pc);
         startActivity(intent);
 
@@ -425,6 +428,10 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
             //在子點內儲存值
             myNextChild.setValue(p);
             Log.d(TAG, "savePointCloudtoFirebase : Saving Point....");
+
+            //20210901
+            //試圖丟棄推完的點 不要浪費空間f
+
         }
     }
 
@@ -992,7 +999,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
                         a, r, g, b, color,
                         depth, xDepth, yDepth);
                 degView.append(msg);
-                com.google.ar.core.examples.java.common.helpers.Point newPoint=new com.google.ar.core.examples.java.common.helpers.Point(xyz[0],xyz[1],xyz[2],color);
+                com.google.ar.core.examples.java.common.helpers.Point newPoint=new com.google.ar.core.examples.java.common.helpers.Point(xyz[0],xyz[1],xyz[2],a,r,g,b);
                 pc.add(newPoint);
             }
         });
@@ -1212,7 +1219,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
                             degView.setTextColor(color);
 //              degView.setBackgroundColor((Integer.reverse(color)&0xFFFFFF)+0xee000000);
                             degView.setBackgroundColor(0xeeffffff);
-                            com.google.ar.core.examples.java.common.helpers.Point nupoint = new com.google.ar.core.examples.java.common.helpers.Point(xyz[0], xyz[1], xyz[2],color);
+                            com.google.ar.core.examples.java.common.helpers.Point nupoint = new com.google.ar.core.examples.java.common.helpers.Point(xyz[0], xyz[1], xyz[2],a,r,g,b);
                             pc.add(nupoint);
                         }
                     });
