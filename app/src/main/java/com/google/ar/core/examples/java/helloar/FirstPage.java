@@ -17,19 +17,24 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-
+//主畫面-第一頁:有點無關緊要，那時候我試著給會員做登入的時候用到的 放了一個skip button跳過冗長的登入
 public class FirstPage extends Activity {
     private FirebaseAuth mAuth;
     public Button subBtn;
     public Button logBtn;
-    private static final String TAG = "create_acc_type_vibe";
+    private static final String TAG = "create_acc";
+    private DatabaseReference mDatabase;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.firstpage);
+        //HERE
         mAuth = FirebaseAuth.getInstance();
+
+
         Button insta=(Button)findViewById(R.id.loginbtn);
         insta.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -94,7 +99,6 @@ public class FirstPage extends Activity {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "createUserWithEmail:success");
                             FirebaseUser user = mAuth.getCurrentUser();
-                            //給他們輸入名字ㄅ
                             //inflateName(user);
                             updateUI(user);
                         } else {
@@ -110,50 +114,6 @@ public class FirstPage extends Activity {
         // [END create_user_with_email]
 
     }
-    /*private void inflateName(FirebaseUser user){
-
-        // inflate the layout of the popup window
-        LayoutInflater inflater = (LayoutInflater)
-                getSystemService(LAYOUT_INFLATER_SERVICE);
-        View popupView = inflater.inflate(R.layout.popup, null);
-
-        // create the popup window
-        int width = LinearLayout.LayoutParams.WRAP_CONTENT;
-        int height = LinearLayout.LayoutParams.WRAP_CONTENT;
-        boolean focusable = true; // lets taps outside the popup also dismiss it
-        final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
-
-        // show the popup window
-        // which view you pass in doesn't matter, it is only used for the window tolken
-        View view = findViewById(R.id.LoginLayout);
-        popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
-        Button namebtn=(Button)findViewById(R.id.UserBtn);
-        namebtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                        .setDisplayName("Jane Q. User")
-                        .build();
-                user.updateProfile(profileUpdates)
-                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if (task.isSuccessful()) {
-                                    Log.d(TAG, "User profile updated.");
-                                }
-                            }
-                        });
-            }
-        });
-        // dismiss the popup window when touched
-        popupView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                popupWindow.dismiss();
-                return true;
-            }
-        });
-    }*/
     private void signIn(String email, String password) {
         // [START sign_in_with_email]
         mAuth.signInWithEmailAndPassword(email, password)
@@ -175,6 +135,7 @@ public class FirstPage extends Activity {
                     }
                 });
         // [END sign_in_with_email]
+        saveData();
     }
     public void updateUI(FirebaseUser user){
         if(user==null){
@@ -183,10 +144,11 @@ public class FirstPage extends Activity {
         }
         else{
             //String userName = user.getDisplayName();
-            //這等之後再修
+            //這等HAAAAAAAARVEY再修
             String userid=user.getUid();
             Toast.makeText(FirstPage.this, "Hello"+userid,
                     Toast.LENGTH_SHORT).show();
+
             Intent intent=new Intent(this,ScanActivity.class);
             intent.putExtra("bruh",user);
             startActivity(intent);
@@ -195,5 +157,14 @@ public class FirstPage extends Activity {
     public void skip(){
         Intent intentS=new Intent(this,ScanActivity.class);
         startActivity(intentS);
+    }
+    //tester method for saving data:
+    public void saveData(){
+        //mDatabase = FirebaseDatabase.getInstance().getReference();
+        // Write a message to the database
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("message");
+
+        myRef.setValue("Hello, World!");
     }
 }

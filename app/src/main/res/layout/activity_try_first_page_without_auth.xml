@@ -4,16 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".PointCloudDrawing">
+    tools:context=".Try_FirstPage_without_auth">
 
     <Button
-        android:id="@+id/savePointCloud"
-        android:layout_width="289dp"
-        android:layout_height="44dp"
+        android:id="@+id/trysavebutton"
+        android:layout_width="168dp"
+        android:layout_height="87dp"
         android:text="Button"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.93" />
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

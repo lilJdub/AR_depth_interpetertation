@@ -97,6 +97,22 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
+//Cloud anchor-add ons
+import android.content.SharedPreferences;
+import android.widget.EditText;
+import com.google.ar.core.exceptions.CloudAnchorsNotConfiguredException;
+import com.google.common.base.Preconditions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import java.util.concurrent.TimeUnit;
+import static com.google.ar.core.Session.FeatureMapQuality.GOOD;
+import static com.google.ar.core.Session.FeatureMapQuality.INSUFFICIENT;
+import static com.google.ar.core.Session.FeatureMapQuality.SUFFICIENT;
+
 /**
  * This is a simple example that shows how to create an augmented reality (AR) application using the
  * ARCore API. The application will display any detected planes and will allow the user to tap on a
@@ -105,6 +121,7 @@ import java.util.List;
 public class ScanActivity extends AppCompatActivity implements SampleRender.Renderer {
 
     private static final String TAG = ScanActivity.class.getSimpleName();
+    private static final String TAG2 = "BRUH";
 
     private static final String SEARCHING_PLANE_MESSAGE = "Searching for surfaces...";
     private static final String WAITING_FOR_TAP_MESSAGE = "Tap on a surface to place an object.";
@@ -205,7 +222,32 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
     private Button autoScanBtn;
     private boolean toggleMode = false;
 
-    //region Implement View Event
+    //ADD
+    protected static final String HOSTED_ANCHOR_IDS = "anchor_ids";
+    protected static final String HOSTED_ANCHOR_NAMES = "anchor_names";
+    protected static final String HOSTED_ANCHOR_MINUTES = "anchor_minutes";
+    private String cloudAnchorId;
+    private SharedPreferences sharedPreferences;
+    //INIT cloud anchor state
+    private enum AppAnchorState {
+        NONE,
+        HOSTING,
+        HOSTED
+    }
+    private AppAnchorState appAnchorState = AppAnchorState.NONE;
+    private CloudAnchorManager cloudAnchorManager;
+    private final Object anchorLock = new Object();
+    private Anchor anchor;
+
+    //8/27
+    //firebase
+    private FirebaseDatabase mFirebaseDatabase;
+    private FirebaseAuth mAuth;
+    private DatabaseReference mDatabase;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    private DatabaseReference myRef;
+    private DatabaseReference myNextChild;
+    public ArrayList<com.google.ar.core.examples.java.common.helpers.Point>pp;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -229,6 +271,21 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
 
         // Set up renderer.
         render = new SampleRender(surfaceView, this, getAssets());
+
+        //add resolve button.
+        Button resolveButton=(Button)findViewById(R.id.resolving);
+        EditText resolveInput=(EditText)findViewById(R.id.input_anchor);
+        //resolve button initiated.
+        resolveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String resolve_ID=resolveInput.getText().toString();
+                Toast.makeText(getApplicationContext(), "resolve ID: "+resolve_ID, Toast.LENGTH_SHORT).show();
+                Log.d("resolve ID: ",resolve_ID);
+                resolveCloudAnchor(resolve_ID);
+            }
+        });
+
 
         //toggleButton初始化
         toggleButton = findViewById(R.id.ToggleButton);
@@ -327,16 +384,55 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
 //      }
 //    },getAssets());
     }
+    //add for resolve
+    public Anchor resolveCloudAnchor(String cloudAnchorId){
+        session.resolveCloudAnchor(cloudAnchorId);
+        return anchor;
+    }
+    //add
+    public void createSession() throws UnavailableSdkTooOldException, UnavailableDeviceNotCompatibleException, UnavailableArcoreNotInstalledException, UnavailableApkTooOldException {
+        // Create a new ARCore session.
+        session = new Session(this);
+        cloudAnchorManager = new CloudAnchorManager(session);
+        // Create a session config.
+        Config config = new Config(session);
+        // Do feature-specific operations here, such as enabling depth or turning on
+        // support for Augmented Faces.
+        // Configure the session.
+        session.configure(config);
+    }
+    //
 
     private void passTwoD() {
             /*degView=findViewById(R.id.textdeg);
             for(com.google.ar.core.examples.java.common.helpers.Point p:PointCloudSaving.pointC){
                 degView.append(""+p.getX()+p.getY()+p.getZ());
             }*/
+        //存入一個儲存用Class
         PointCloudSaving.pointC = pc;
-        Intent intent = new Intent(this, PointCloudDrawing.class);
+        //Intent intent = new Intent(this, PointCloudDrawing.class);
+        //8/30 change activity
+        //Intent intent = new Intent(this, DrawingPointFromDB.class);
+        //9/9 change activity
+        Intent intent = new Intent(this, DrawingPointFromDB.class);
         //intent.putExtra("data",pc);
         startActivity(intent);
+
+        //8/27
+        //存入Firebase內
+        mDatabase= FirebaseDatabase.getInstance().getReference();
+        pp=PointCloudSaving.pointC;
+        for(com.google.ar.core.examples.java.common.helpers.Point p:pp){
+            //用push()製造一個全新的子點以供辨識
+            myNextChild = mDatabase.push();
+            //在子點內儲存值
+            myNextChild.setValue(p);
+            Log.d(TAG, "savePointCloudtoFirebase : Saving Point....");
+
+            //20210901
+            //試圖丟棄推完的點 不要浪費空間f
+
+        }
     }
 
     /**
@@ -683,8 +779,14 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
         backgroundRenderer.drawBackground(render);
 
         // Handle one tap per frame.
-        handleTap(frame, camera);
+        //handleTap(frame, camera);
 
+        //add
+        cloudAnchorManager.onUpdate();
+        TrackingState cameraTrackingState = camera.getTrackingState();
+        // Notify the cloudAnchorManager of all the updates.
+        cloudAnchorManager.onUpdate();
+        handleTap(frame, camera,cameraTrackingState);
 
         // Keep the screen unlocked while tracking, but allow it to lock when tracking stops.
         trackingStateHelper.updateKeepScreenOnFlag(camera.getTrackingState());
@@ -863,7 +965,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
         int depth2 = depthBuffer.get(byteIndex + 1) & 0xff;
         short depth = (short) (depth1 + (depth2 << 8));
 //                DepthBuffer.putShort(depth);
-
+        
         float[] cloudPoint = new float[4];
 
         float[] viewProjectMatrix = new float[16];
@@ -897,7 +999,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
                         a, r, g, b, color,
                         depth, xDepth, yDepth);
                 degView.append(msg);
-                com.google.ar.core.examples.java.common.helpers.Point newPoint=new com.google.ar.core.examples.java.common.helpers.Point(xyz[0],xyz[1],xyz[2],color);
+                com.google.ar.core.examples.java.common.helpers.Point newPoint=new com.google.ar.core.examples.java.common.helpers.Point(xyz[0],xyz[1],xyz[2],a,r,g,b);
                 pc.add(newPoint);
             }
         });
@@ -933,7 +1035,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
         }
     }
     // Handle only one tap per frame, as taps are usually low frequency compared to frame rate.
-    private void handleTap(Frame frame, Camera camera) {
+    private void handleTap(Frame frame, Camera camera,TrackingState cameraTrackingState) {
         //找到全部的TAP
         MotionEvent tap = tapHelper.poll();
         //辨識出TAP放入list內
@@ -1035,6 +1137,62 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
                     Pose pose = new Pose(xyz, ori);
 
                     Anchor anchor = session.createAnchor(pose);
+                    //cloudanchor
+                    Anchor cloud_anchor = session.createAnchor(pose);
+                    anchors.add(anchor);
+                    Session.FeatureMapQuality quality = session.estimateFeatureMapQualityForHosting(frame.getCamera().getPose());
+                    Log.d("quality: ",quality+"");
+                    Anchor.CloudAnchorState state = anchor.getCloudAnchorState();
+                    if (state.isError()) {
+                        Log.e(TAG, "Error hosting a cloud anchor, state " + state);
+                        return;
+                    }
+                    anchor = session.hostCloudAnchor(anchor);
+                    //cloudAnchorManager.hostCloudAnchor(anchor, new HostListener());
+//                    Toast.makeText(getApplicationContext(),"Cloud Anchor id:"+anchor.getCloudAnchorId(),duration).show();
+//                    Log.d("Cloud Anchor id: ",anchor.getCloudAnchorId());
+                    Log.d("Cloud Anchor state: ",anchor.getCloudAnchorState()+"");
+                    if (quality==SUFFICIENT||quality==GOOD&&cameraTrackingState==TrackingState.TRACKING){
+                        try{
+                            cloudAnchorManager.hostCloudAnchor(cloud_anchor, new HostListener());
+                            //Toast.makeText(getApplicationContext(),"Cloud Anchor id:"+anchor.getCloudAnchorId(),duration).show();
+                            Log.d("Cloud Anchor id: ",cloud_anchor.getCloudAnchorId());
+                            Log.d("cloud anchor","works");
+                            //anchor = session.hostCloudAnchor(anchor);
+                            //cloudAnchorManager.hostCloudAnchor(anchor, new HostListener());
+                            String cloudAnchorID = cloud_anchor.getCloudAnchorId();
+                            Log.d("Cloud Anchor id: ",cloudAnchorID);
+                            appAnchorState = AppAnchorState.HOSTING;
+                            Log.d("Cloud Anchor state: ",anchor.getCloudAnchorState()+"");
+                        }
+                        catch(CloudAnchorsNotConfiguredException e){
+                            Log.d("anchor exception"," CloudAnchorsNotConfiguredException");
+                        }
+                    }
+                    else{
+                        Log.d("Quality Insufficient: ",quality+"");
+                    }
+
+                    // Write a message to the database
+                    FirebaseDatabase database = FirebaseDatabase.getInstance();
+                    DatabaseReference myRef = database.getReference("message");
+                    myRef.setValue(anchor.getCloudAnchorId());
+                    // Read from the database
+                    myRef.addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            // This method is called once with the initial value and again
+                            // whenever data at this location is updated.
+                            String value = dataSnapshot.getValue(String.class);
+                            Log.d(TAG, "Firebase Cloud Anchor ID: " + value);
+                        }
+                        @Override
+                        public void onCancelled(DatabaseError error) {
+                            // Failed to read value
+                            Log.w(TAG, "Failed to read value.", error.toException());
+                        }
+                    });
+
                     float finalDepthYScale = depthYScale;
                     float finalDepthXScale = depthXScale;
                     int finalDepthWidth = depthWidth;
@@ -1052,11 +1210,16 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
                                     depth, xDepth, yDepth,
                                     finalDepthWidth, finalDepthHeight,
                                     finalDepthXScale, finalDepthYScale);
+                            //cloudanchor add
+                            if (quality==INSUFFICIENT||quality==SUFFICIENT){
+                                Toast.makeText(getApplicationContext(), "Quality: "+quality+" TRACKING STATE: "+cameraTrackingState, Toast.LENGTH_SHORT).show();
+                            }
+
                             degView.setText(msg);
                             degView.setTextColor(color);
 //              degView.setBackgroundColor((Integer.reverse(color)&0xFFFFFF)+0xee000000);
                             degView.setBackgroundColor(0xeeffffff);
-                            com.google.ar.core.examples.java.common.helpers.Point nupoint = new com.google.ar.core.examples.java.common.helpers.Point(xyz[0], xyz[1], xyz[2],color);
+                            com.google.ar.core.examples.java.common.helpers.Point nupoint = new com.google.ar.core.examples.java.common.helpers.Point(xyz[0], xyz[1], xyz[2],a,r,g,b);
                             pc.add(nupoint);
                         }
                     });
@@ -1247,6 +1410,11 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
     /** Configures the session with feature settings. */
     private void configureSession() {
         Config config = session.getConfig();
+        //cloudanchor add
+        cloudAnchorManager = new CloudAnchorManager(session);
+        config.setCloudAnchorMode(Config.CloudAnchorMode.ENABLED);
+        config.setFocusMode(Config.FocusMode.AUTO);
+        //
         config.setLightEstimationMode(Config.LightEstimationMode.ENVIRONMENTAL_HDR);
         if (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
             config.setDepthMode(Config.DepthMode.AUTOMATIC);
@@ -1259,5 +1427,75 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
             config.setInstantPlacementMode(InstantPlacementMode.DISABLED);
         }
         session.configure(config);
+    }
+    protected Config getSessionConfiguration(Session session) {
+        Config config = new Config(session);
+        //getPlaneDiscoveryController().setInstructionView(null);
+        config.setCloudAnchorMode(Config.CloudAnchorMode.ENABLED);
+        config.setFocusMode(Config.FocusMode.AUTO);
+        session.configure(config);
+        return config;}
+    /* Listens for a hosted anchor. */
+    private final class HostListener implements CloudAnchorManager.CloudAnchorListener {
+        private String cloudAnchorId;
+        @Override
+        public void onComplete(Anchor anchor) {
+            runOnUiThread(
+                    () -> {
+                        Toast.makeText(getApplicationContext(), "Hello", Toast.LENGTH_SHORT).show();
+                        Anchor.CloudAnchorState state = anchor.getCloudAnchorState();
+                        if (state.isError()) {
+                            Log.e(TAG, "Error hosting a cloud anchor, state " + state);
+                            return;
+                        }
+                        Preconditions.checkState(
+                                cloudAnchorId == null, "The cloud anchor ID cannot have been set before.");
+                        cloudAnchorId = anchor.getCloudAnchorId();
+                        setNewAnchor(anchor);
+                        Log.i(TAG, "Anchor " + cloudAnchorId + " created.");
+                        saveAnchorWithNickname();
+                    });
+        }
+    }
+    private void setNewAnchor(Anchor newAnchor) {
+        if (anchors.size()>30) {
+            anchor.detach();
+        }
+        anchor = newAnchor;
+    }
+    private void saveAnchorWithNickname() {
+        HostDialogFragment hostDialogFragment = new HostDialogFragment();
+        // Supply num input as an argument.
+        Bundle args = new Bundle();
+        args.putString(
+                "nickname", getString(R.string.nickname_default, getNumStoredAnchors(sharedPreferences)));
+        hostDialogFragment.setOkListener(this::onAnchorNameEntered);
+        hostDialogFragment.setArguments(args);
+        hostDialogFragment.show(getSupportFragmentManager(), "HostDialog");
+    }
+    private void onAnchorNameEntered(String anchorNickname) {
+        saveAnchorToStorage(cloudAnchorId, anchorNickname, sharedPreferences);
+        Toast.makeText(getApplicationContext(), getString(R.string.debug_hosting_success, cloudAnchorId), Toast.LENGTH_SHORT).show();
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, cloudAnchorId);
+        sendIntent.setType("text/plain");
+        Intent shareIntent = Intent.createChooser(sendIntent, null);
+        startActivity(shareIntent);
+    }
+    private static void saveAnchorToStorage(String anchorId, String anchorNickname, SharedPreferences anchorPreferences) {
+        String hostedAnchorIds = anchorPreferences.getString(HOSTED_ANCHOR_IDS, "");
+        String hostedAnchorNames = anchorPreferences.getString(HOSTED_ANCHOR_NAMES, "");
+        String hostedAnchorMinutes = anchorPreferences.getString(HOSTED_ANCHOR_MINUTES, "");
+        hostedAnchorIds += anchorId + ";";
+        hostedAnchorNames += anchorNickname + ";";
+        hostedAnchorMinutes += TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis()) + ";";
+        anchorPreferences.edit().putString(HOSTED_ANCHOR_IDS, hostedAnchorIds).apply();
+        anchorPreferences.edit().putString(HOSTED_ANCHOR_NAMES, hostedAnchorNames).apply();
+        anchorPreferences.edit().putString(HOSTED_ANCHOR_MINUTES, hostedAnchorMinutes).apply();
+    }
+    private static int getNumStoredAnchors(SharedPreferences anchorPreferences) {
+        String hostedAnchorIds = anchorPreferences.getString(ScanActivity.HOSTED_ANCHOR_IDS, "");
+        return hostedAnchorIds.split(";", -1).length - 1;
     }
 }

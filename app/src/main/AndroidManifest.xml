@@ -22,15 +22,16 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="false"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".PointCloudDrawing"></activity>
+        <activity android:name=".OpenGLdemo"></activity>
+        <activity android:name=".DrawingPointFromDB" />
+        <activity android:name=".PointCloudDrawing" />
         <activity android:name=".FirstPage">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        <!-- Indicates whether "Google Play Services for AR" (ARCore) is "required" or "optional". -->
+        </activity> <!-- Indicates whether "Google Play Services for AR" (ARCore) is "required" or "optional". -->
         <activity
             android:name=".ScanActivity"
             android:configChanges="orientation|screenSize"
