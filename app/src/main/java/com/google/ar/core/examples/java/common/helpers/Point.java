@@ -23,7 +23,4 @@ public class Point {
         this.g=g;
         this.b=b;
     }
-    public float getY() {
-        return y*-800f;
-    }
 }

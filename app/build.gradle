@@ -22,6 +22,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    viewBinding {
+        enabled true
+    }
 }
 
 dependencies {
@@ -46,6 +49,10 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth'
 
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+
+    //implement google API
+    implementation 'com.google.maps.android:android-maps-utils:2.2.3'
 }
 /*implementation 'com.google.ar:core:1.24.0'
 

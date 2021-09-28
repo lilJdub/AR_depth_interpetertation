@@ -2,6 +2,7 @@ package com.google.ar.core.examples.java.helloar;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
@@ -28,72 +29,25 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 public class OpenGLdemo extends Activity {
+    private static final String TAG ="Intent";
     private GLSurfaceView mView;
     private Feature_Points mRenderer;
-    public int colors[];
+
+    public float colors[];
     public float vertex_list[];
 
-    //firebase
-    private FirebaseDatabase mFirebaseDatabase;
-    private FirebaseAuth mAuth;
-    private DatabaseReference mDatabase;
-    private FirebaseAuth.AuthStateListener mAuthListener;
-
-    private static final String TAG ="reading from DB....";
-
+    public float VertexArray[];
+    public float ColorArray[];
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //Authentication
-        mAuth= FirebaseAuth.getInstance();
-        mFirebaseDatabase=FirebaseDatabase.getInstance();
-        mAuthListener=new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull @NotNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user=mAuth.getCurrentUser();
-                if(user!=null){
-                    Log.d(TAG, "onAuthStateChanged:signed_in");
-                }
-                else{
-                    Log.d(TAG, "onAuthStateChanged:signed_out");
-                }
-            }
-        };
-        ValueEventListener valueEventListener=new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
-                for(DataSnapshot ds:snapshot.getChildren()){
-                    ArrayList<Integer>color=null;
-                    Integer R=ds.child("r").getValue(Integer.class);
-                    color.add(R);
-                    Integer G=ds.child("g").getValue(Integer.class);
-                    color.add(G);
-                    Integer B=ds.child("b").getValue(Integer.class);
-                    color.add(B);
-                    Integer A=ds.child("a").getValue(Integer.class);
-                    color.add(A);
-                    ArrayList<Float>vertex=null;
-                    Double X=ds.child("x").getValue(Double.class);
-                    vertex.add(X.floatValue());
-                    Double Y=ds.child("y").getValue(Double.class);
-                    vertex.add(Y.floatValue());
-                    Double Z=ds.child("z").getValue(Double.class);
-                    vertex.add(Z.floatValue());
-
-                    for(int i=0;i<color.size()-1;i++){
-                        colors[i]=color.get(i);
-                    }
-                    for(int i=0;i<vertex.size()-1;i++){
-                        vertex_list[i]=vertex.get(i);
-                    }
-
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull @NotNull DatabaseError error) {
-
-            }
-        };
+        //
+        Intent intent=getIntent();
+        ColorArray=intent.getFloatArrayExtra("ColorArray");
+        VertexArray=intent.getFloatArrayExtra("Vertex_Array");
+        for(float f:VertexArray){
+            Log.d(TAG, "onCreate: "+f);
+        }
         mView = new GLSurfaceView(this);
         mRenderer = new Feature_Points(this);
         mView.setRenderer(mRenderer);
@@ -143,12 +97,18 @@ public class OpenGLdemo extends Activity {
             gl.glRotatef(mAngleZ, 0, 0, 1);
             gl.glScalef(AXIS_SCALE_FACTOR, AXIS_SCALE_FACTOR, AXIS_SCALE_FACTOR);
             gl.glVertexPointer(3, GL10.GL_FLOAT, 0, mVertexBuffer);
+            //9/15 test
             /*float colors[]={
-                    1.0f,0.0f,0.0f,1.0f,
-                    0.0f,1.0f,0.0f,1.0f,
-                    0.0f,0.0f,1.0f,1.0f,
-                    0.0f,1.0f,1.0f,0.8f,
+                    255,255,0,255,
+                    255,255,0,255,
+                    255,255,0,255,
+                    255,255,0,255,
+                    255,255,0,255,
+                    55,255,0,255,
+                    125,255,0,255,
+                    255,0,0,255,
             };*/
+            colors=ColorArray;
             Log.d("vertex length: ",""+vertex_length);
             //每四個r,g,b,a一組
             color_length=(colors.length/4)-1;
@@ -164,7 +124,7 @@ public class OpenGLdemo extends Activity {
             for(int index=0;index<=color_length;index++){
 
                 //設定顏色 依序填入r,g,b,a
-                gl.glColor4f(colors[4*index], colors[4*index+1], colors[4*index+2], colors[4*index+3]);
+                gl.glColor4f(colors[index*4], colors[index*4+1],colors[index*4+2], colors[index*4+3]);
                 /*
                 GL10.GL_POINTS:繪製openGL類型:POINTS
                 index:從array第幾項開始，利用for loop從0開始
@@ -194,7 +154,11 @@ public class OpenGLdemo extends Activity {
         }
 
         private void setAllBuffers(){
-
+            //9/15 test
+            /*float vertex_list[]={
+                    0.5f,0.5f,0.0f,1
+            };*/
+            vertex_list=VertexArray;
             ByteBuffer vbb = ByteBuffer.allocateDirect(vertex_list.length * 4);
             vbb.order(ByteOrder.nativeOrder());
             mVertexBuffer = vbb.asFloatBuffer();

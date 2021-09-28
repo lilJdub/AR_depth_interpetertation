@@ -155,8 +155,8 @@ public class FirstPage extends Activity {
         }
     }
     public void skip(){
-        Intent intentS=new Intent(this,ScanActivity.class);
-        startActivity(intentS);
+        Intent Mapintent=new Intent(this,MapsActivity.class);
+        startActivity(Mapintent);
     }
     //tester method for saving data:
     public void saveData(){

@@ -4,27 +4,40 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".DrawingPointFromDB">
+    tools:context=".PointCloudDrawing">
 
-    <TextView
-        android:id="@+id/textViewSeeDB"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:text="TextView"
+    <EditText
+        android:id="@+id/input_map_name"
+        android:layout_width="220dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:hint="input map name"
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteX="95dp"
+        tools:layout_editor_absoluteY="66dp" />
+
+    <Button
+        android:id="@+id/push_to_Firebase"
+        android:layout_width="289dp"
+        android:layout_height="44dp"
+        android:text="Button"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.26" />
 
     <Button
-        android:id="@+id/passIntent"
-        android:layout_width="168dp"
-        android:layout_height="90dp"
+        android:id="@+id/savePointCloud"
+        android:layout_width="289dp"
+        android:layout_height="44dp"
         android:text="Button"
-        app:layout_constraintBottom_toBottomOf="@+id/textViewSeeDB"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.846" />
+        app:layout_constraintVertical_bias="0.93" />
 </androidx.constraintlayout.widget.ConstraintLayout>

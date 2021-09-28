@@ -248,6 +248,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
     private DatabaseReference myRef;
     private DatabaseReference myNextChild;
     public ArrayList<com.google.ar.core.examples.java.common.helpers.Point>pp;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -418,21 +419,17 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
         //intent.putExtra("data",pc);
         startActivity(intent);
 
-        //8/27
+        //09\28
         //存入Firebase內
-        mDatabase= FirebaseDatabase.getInstance().getReference();
+        /*mDatabase= FirebaseDatabase.getInstance().getReference();
         pp=PointCloudSaving.pointC;
+        myRef=mDatabase.child("test");
         for(com.google.ar.core.examples.java.common.helpers.Point p:pp){
             //用push()製造一個全新的子點以供辨識
-            myNextChild = mDatabase.push();
+            myNextChild = myRef.push();
             //在子點內儲存值
             myNextChild.setValue(p);
-            Log.d(TAG, "savePointCloudtoFirebase : Saving Point....");
-
-            //20210901
-            //試圖丟棄推完的點 不要浪費空間f
-
-        }
+        }*/
     }
 
     /**
@@ -999,8 +996,8 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
                         a, r, g, b, color,
                         depth, xDepth, yDepth);
                 degView.append(msg);
-                com.google.ar.core.examples.java.common.helpers.Point newPoint=new com.google.ar.core.examples.java.common.helpers.Point(xyz[0],xyz[1],xyz[2],a,r,g,b);
-                pc.add(newPoint);
+                com.google.ar.core.examples.java.common.helpers.Point newPoint=new com.google.ar.core.examples.java.common.helpers.Point(xyz[0],xyz[1]/1000,xyz[2],a,r,g,b);
+                //pc.add(newPoint);
             }
         });
 
@@ -1214,13 +1211,12 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
                             if (quality==INSUFFICIENT||quality==SUFFICIENT){
                                 Toast.makeText(getApplicationContext(), "Quality: "+quality+" TRACKING STATE: "+cameraTrackingState, Toast.LENGTH_SHORT).show();
                             }
-
                             degView.setText(msg);
                             degView.setTextColor(color);
 //              degView.setBackgroundColor((Integer.reverse(color)&0xFFFFFF)+0xee000000);
                             degView.setBackgroundColor(0xeeffffff);
-                            com.google.ar.core.examples.java.common.helpers.Point nupoint = new com.google.ar.core.examples.java.common.helpers.Point(xyz[0], xyz[1], xyz[2],a,r,g,b);
-                            pc.add(nupoint);
+                            com.google.ar.core.examples.java.common.helpers.Point newPoint = new com.google.ar.core.examples.java.common.helpers.Point(xyz[0], xyz[1], xyz[2],a,r,g,b);
+                            pc.add(newPoint);
                         }
                     });
                     // Adding an Anchor tells ARCore that it should track this position in
@@ -1396,7 +1392,7 @@ public class ScanActivity extends AppCompatActivity implements SampleRender.Rend
 
         if (coefficients.length != 9 * 3) {
             throw new IllegalArgumentException(
-                    "The given coefficients array must be of length 27 (3 components per 9 coefficients");
+                    "The given coefficients arfray must be of length 27 (3 components per 9 coefficients");
         }
 
         // Apply each factor to every component of each coefficient
