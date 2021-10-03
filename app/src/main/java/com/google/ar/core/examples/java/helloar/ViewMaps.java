@@ -16,9 +16,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import org.jetbrains.annotations.NotNull;
+import android.widget.Spinner;
+
+import java.util.ArrayList;
+
 
 public class ViewMaps extends Activity {
 
+    private static final String TAG = "tester";
     //firebase
     private FirebaseDatabase mFirebaseDatabase;
     private FirebaseAuth mAuth;
@@ -27,11 +32,15 @@ public class ViewMaps extends Activity {
     private DatabaseReference myRef;
     private DatabaseReference rootRef;
     private DatabaseReference myNextChild;
-    private ValueEventListener valueEventListener;
+    public ValueEventListener valueEventListener;
+
+    public ArrayList<String> buildings=new ArrayList<String>();
+    public String buildingList[];
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_maps);
+
         //mAuth
         mAuth= FirebaseAuth.getInstance();
         mFirebaseDatabase=FirebaseDatabase.getInstance();
@@ -51,19 +60,34 @@ public class ViewMaps extends Activity {
             }
         };
         valueEventListener = new ValueEventListener() {
+            private static final String TAG = "TEST";
+
             @Override
             public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
                 for(DataSnapshot child:snapshot.getChildren()){
                     String BuildingName=child.getKey();
-
+                    Log.d(TAG, "onDataChange: "+BuildingName);
+                    buildings.add(BuildingName);
                 }
+                Log.d("size of buildings",""+buildings.size());
+                buildingList= new String[buildings.size()];
+
+                //generate all buildings list
+                for(int i = 0; i <= buildings.size() - 1; i++){
+                    buildingList[i]=buildings.get(i);
+                }
+
+                Spinner spinner=new Spinner(ViewMaps.this);
             }
             @Override
             public void onCancelled(@NonNull @NotNull DatabaseError error) {
 
             }
         };
+
         rootRef=FirebaseDatabase.getInstance().getReference();
         rootRef.addListenerForSingleValueEvent(valueEventListener);
+
+
     }
 }
