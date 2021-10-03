@@ -149,13 +149,13 @@ public class FirstPage extends Activity {
             Toast.makeText(FirstPage.this, "Hello"+userid,
                     Toast.LENGTH_SHORT).show();
 
-            Intent intent=new Intent(this,ScanActivity.class);
+            Intent intent=new Intent(this,Menu.class);
             intent.putExtra("bruh",user);
             startActivity(intent);
         }
     }
     public void skip(){
-        Intent Mapintent=new Intent(this,MapsActivity.class);
+        Intent Mapintent=new Intent(this,ScanActivity.class);
         startActivity(Mapintent);
     }
     //tester method for saving data:

@@ -10,7 +10,6 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 
 import com.google.ar.core.examples.java.common.helpers.Point;
 import com.google.firebase.auth.FirebaseAuth;
@@ -23,7 +22,6 @@ import com.google.firebase.database.ValueEventListener;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class DrawingPointFromDB extends Activity {
@@ -42,7 +40,8 @@ public class DrawingPointFromDB extends Activity {
     private FirebaseDatabase mFirebaseDatabase;
     private FirebaseAuth mAuth;
     public DatabaseReference mDatabase;
-    public DatabaseReference myRef;
+    public DatabaseReference BuildingName;
+    public DatabaseReference UserName;
     private FirebaseAuth.AuthStateListener mAuthListener;
     private DatabaseReference myNextChild;
     private FirebaseUser user;
@@ -165,10 +164,11 @@ public class DrawingPointFromDB extends Activity {
         //getting data
         pp=PointCloudSaving.pointC;
         mDatabase= FirebaseDatabase.getInstance().getReference();
-        myRef=mDatabase.child(name_input.getText().toString()+user.getUid());
+        BuildingName=mDatabase.child(name_input.getText().toString());
+        UserName=BuildingName.child(user.getUid());
         for(com.google.ar.core.examples.java.common.helpers.Point p:pp){
             //用push()製造一個全新的子點以供辨識
-            myNextChild = myRef.push();
+            myNextChild = UserName.push();
             myNextChild.setValue(p);
         }
     }
