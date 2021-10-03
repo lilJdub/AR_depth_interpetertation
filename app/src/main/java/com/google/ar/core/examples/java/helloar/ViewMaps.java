@@ -19,7 +19,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class ViewMaps extends Activity {
 
-    private static final String TAG ="Get data from DB";
     //firebase
     private FirebaseDatabase mFirebaseDatabase;
     private FirebaseAuth mAuth;
@@ -55,7 +54,8 @@ public class ViewMaps extends Activity {
             @Override
             public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
                 for(DataSnapshot child:snapshot.getChildren()){
-                    String childName=child.getKey();
+                    String BuildingName=child.getKey();
+
                 }
             }
             @Override

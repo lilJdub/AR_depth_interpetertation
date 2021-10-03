@@ -27,7 +27,8 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="false"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".Menu"></activity>
+        <activity android:name=".middlePoint"></activity>
+        <activity android:name=".Menu" />
         <activity android:name=".ViewMaps" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
